@@ -6,6 +6,7 @@ import RoleFields from "@/components/forms/RoleFields";
 import { trackEvent } from "@/lib/analytics/events";
 import { getAttribution } from "@/lib/analytics/utm";
 import { options, roles } from "@/lib/leads/fields";
+import { submitLead } from "@/lib/leads/sheets";
 import { validateStep } from "@/lib/leads/validation";
 
 const emptyData = {
@@ -69,16 +70,7 @@ export default function LeadForm({ preset }) {
     setStatus("loading");
     setMessage("");
     try {
-      const response = await fetch("/api/leads", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...data, attribution: getAttribution(sessionStorage) })
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        if (result.errors) setErrors(result.errors);
-        throw new Error(result.message || "Не удалось отправить заявку");
-      }
+      await submitLead({ ...data, attribution: getAttribution(sessionStorage) });
       setStatus("success");
       trackEvent("form_submitted", { role: data.role, scenario: data.scenario, selectedCta: data.selectedCta });
     } catch (error) {
